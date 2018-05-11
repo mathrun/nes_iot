@@ -3,8 +3,8 @@
 ################################################################################
 
 # Dateien, die durch ein 'clean' gelöscht werden sollen
-CLEANABLE_OBJS = dist/hello.nes tools/chr2asciiart tools/asciiart2chr \
-  bin/hello.prg bin/pattern_table_1.chr bin/pattern_table_2.chr bin/hello.chr \
+CLEANABLE_OBJS = dist/nes_iot.nes tools/chr2asciiart tools/asciiart2chr \
+  bin/nes_iot.prg bin/pattern_table_1.chr bin/pattern_table_2.chr bin/nes_iot.chr \
   obj/main.o
 
 ASSEMBLER = ca65 # Damit wird unser Assemblercode in eine Objektdatei kompiliert
@@ -25,14 +25,14 @@ ASSFLAGS = # Argumente für den Assembler
 .PHONY: all run clean tools deploy
 
 # Standard-Target wird automatisch bei einem 'make' ausgeführt
-all: tools dist/hello.nes
+all: tools dist/nes_iot.nes
 
 # startet das erstellte ROM im Emulator
 run: all
-	$(EMU) dist/hello.nes
+	$(EMU) dist/nes_iot.nes
   
 #deploy: all
-#	$(DEPLOYER) dist/hello.nes
+#	$(DEPLOYER) dist/nes_iot.nes
 
 # erstellt ausführbare Hilfs-Programme
 tools: tools/chr2asciiart tools/asciiart2chr
@@ -46,19 +46,19 @@ tools/asciiart2chr: tools/asciiart2chr.c
 	$(CC) $(CFLAGS) $< -o $@
 
 # erzeugt das eigentliche ROM
-dist/hello.nes: bin/hello.prg bin/hello.chr
+dist/nes_iot.nes: bin/nes_iot.prg bin/nes_iot.chr
 	cat $^ > $@
  
 # erstellt den .text-Bereich des ROMs
-bin/hello.prg: ./NES_ROM_LAYOUT.link obj/main.o
-	$(LINKER) -o bin/hello.prg -C $^
+bin/nes_iot.prg: ./NES_ROM_LAYOUT.link obj/main.o
+	$(LINKER) -o bin/nes_iot.prg -C $^
  
 # kompiliert die Quelldatei
 obj/main.o: src/main.asm src/nes.inc
 	cd src && $(ASSEMBLER) $(ASSFLAGS) main.asm -o ../obj/main.o && cd ..
 
 # fügt beide Pattern Tables zusammen
-bin/hello.chr: bin/pattern_table_1.chr bin/pattern_table_2.chr
+bin/nes_iot.chr: bin/pattern_table_1.chr bin/pattern_table_2.chr
 	cat $^ > $@
   
 # wandelt die ASCII-Tabelle in ein CHR-ROM um
