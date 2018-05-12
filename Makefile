@@ -2,29 +2,29 @@
 # VARIABLEN                                                                    #
 ################################################################################
 
-# Dateien, die durch ein 'clean' gelöscht werden sollen
-CLEANABLE_OBJS = dist/nes_iot.nes tools/chr2asciiart tools/asciiart2chr \
-  bin/nes_iot.prg bin/pattern_table_1.chr bin/pattern_table_2.chr bin/nes_iot.chr \
-  obj/main.o
+# Dateien, die durch ein 'clean' gelï¿½scht werden sollen
+CLEANABLE_OBJS = ./dist/nes_iot.nes ./tools/chr2asciiart ./tools/asciiart2chr \
+  ./bin/nes_iot.prg ./bin/pattern_table_1.chr ./bin/pattern_table_2.chr ./bin/nes_iot.chr \
+  ./obj/main.o
 
 ASSEMBLER = ca65 # Damit wird unser Assemblercode in eine Objektdatei kompiliert
 LINKER = ld65 # Dieser 'linkt' unsere Objektdateien in ein ROM
 EMU = fceux # Legt den Emulator fest, mit dem wir unser ROM testen
-#DEPLOYER = # Legt das Programm fest, um das ROM auf eine Karte zu übertragen
+#DEPLOYER = # Legt das Programm fest, um das ROM auf eine Karte zu ï¿½bertragen
 CC = gcc # C-Compiler
 CFLAGS = -Wall -ansi -pedantic -g -O0 # C-Compiler-Argumente
-ASSFLAGS = # Argumente für den Assembler
+ASSFLAGS = # Argumente fï¿½r den Assembler
 
 ################################################################################
 # RULES                                                                        #
 ################################################################################
 
-# 'Phony targets' sind Aktionen und keine Dateien und müssen daher immer
-# ausgeführt werden
+# 'Phony targets' sind Aktionen und keine Dateien und mï¿½ssen daher immer
+# ausgefï¿½hrt werden
 
 .PHONY: all run clean tools deploy
 
-# Standard-Target wird automatisch bei einem 'make' ausgeführt
+# Standard-Target wird automatisch bei einem 'make' ausgefï¿½hrt
 all: tools dist/nes_iot.nes
 
 # startet das erstellte ROM im Emulator
@@ -34,14 +34,14 @@ run: all
 #deploy: all
 #	$(DEPLOYER) dist/nes_iot.nes
 
-# erstellt ausführbare Hilfs-Programme
+# erstellt ausfï¿½hrbare Hilfs-Programme
 tools: tools/chr2asciiart tools/asciiart2chr
 
-# erstellt ausführbares Hilfs-Programm 'chr2asciiart'
+# erstellt ausfï¿½hrbares Hilfs-Programm 'chr2asciiart'
 tools/chr2asciiart: tools/chr2asciiart.c
 	$(CC) $(CFLAGS) $< -o $@
 
-# erstellt ausführbares Hilfs-Programm 'asciiart2chr'
+# erstellt ausfï¿½hrbares Hilfs-Programm 'asciiart2chr'
 tools/asciiart2chr: tools/asciiart2chr.c
 	$(CC) $(CFLAGS) $< -o $@
 
@@ -57,7 +57,7 @@ bin/nes_iot.prg: ./NES_ROM_LAYOUT.link obj/main.o
 obj/main.o: src/main.asm src/nes.inc
 	cd src && $(ASSEMBLER) $(ASSFLAGS) main.asm -o ../obj/main.o && cd ..
 
-# fügt beide Pattern Tables zusammen
+# fï¿½gt beide Pattern Tables zusammen
 bin/nes_iot.chr: bin/pattern_table_1.chr bin/pattern_table_2.chr
 	cat $^ > $@
   
@@ -69,6 +69,6 @@ bin/pattern_table_1.chr: res/pattern_table_1.txt
 bin/pattern_table_2.chr: res/pattern_table_2.txt
 	tools/asciiart2chr $< $@
 
-# löscht alle (durch dieses Makefile) erzeugten Dateien
+# lï¿½scht alle (durch dieses Makefile) erzeugten Dateien
 clean:
 	-rm $(CLEANABLE_OBJS)

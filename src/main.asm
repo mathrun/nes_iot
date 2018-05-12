@@ -1,97 +1,107 @@
-; NES-IOT is a nerdy project to controll a modern IoT device with an old school NES
-; due to sending commands to the connctd plattform (www.connctd.io)
+; NES-IOT is a nerdy project to control a modern IoT device with an old school NES
+; due to sending commands to and receiving events from the connctd plattform (www.connctd.io)
 
-.INCLUDE "nes.inc"
+.INCLUDE "nes.inc"  ; for having names for the NES Addresses and Commands
 
 .GLOBALZP nmis      ; (GLOBAL) variables in (Z)ero(P)age for fast access
 
-.P02
+.P02                ; setting freaking mode I do not understand
 
-.SEGMENT "ZEROPAGE"
+.SEGMENT "ZEROPAGE" ; declare what should be in ZeroPage (256 Bytes available)
 
 nmis: .RES 1        ; reserve 1 byte for nmis
 
-.SEGMENT "INES_HEADER"  
+.SEGMENT "INES_HEADER"  ; iNES header
 
-  .BYT "NES", $1A
-  .BYT 1
-  .BYT 1
-  .BYT %00000001 
-  .BYT %00000000
+  .BYT "NES", $1A       ; NES init string
+  .BYT 1                ; 1 PRG
+  .BYT 1                ; 1 CHR
+  .BYT %00000001        ; just copied that. Is about mirroring, trainer enabled, etc...
+  .BYT %00000000        ; No Mapper and no Mapper configuration
 
 .SEGMENT "VECTORS"
   .ADDR nmi, reset, irq
 
 .SEGMENT "CODE"
 
-.PROC irq
+.PROC irq           ; software interrupt
   rti               ; do nothing and (R)e(T)urn from (I)nterrupt
 .ENDPROC
 
-.PROC nmi
+.PROC nmi           ; (N)on (M)askable (I)nterrupt -> PPU is in V-BLANK
   inc nmis          ; increment nmis by 1, value is not important, use value change as indicator for V-BLANK
   rti               ; (R)e(T)urn from (I)nterrupt
 .ENDPROC
 
-.PROC reset
+.PROC reset         ; Start or Reset of NES
+
+                    ;
+
+
+  sei               ; ignore future interrupts by setting I-Flag in P-Register to 0
+  cld               ; turn of BCD mode -> binary mode only
+
+  ldx #0            ; just load a zero to register x
+  stx PPUCTRL       ; turn of NMI until init is complete
+  stx PPUMASK       ; set PPUMASK to zero -> turn of Screen
+
+                    ; prepare stack init
+                    ; set stack pointer to last position
+  ldx #$FF          ; load $FF to register X
+  txs               ; transfer register X content ($FF) to stack pointer
+
+  bit PPUSTATUS     ; reading 7th bit of PPU status will set 7th bit to 1 (just to be safe)
+
+vwait1:             ; loop for waiting for first VBLANK of PPU
+
+  bit PPUSTATUS     ; read PPU state
+  bpl vwait1        ; (B)ranch on (PL)us -> jump to vwait1 when n-flag of P-Register is 0
+
+  ; OK, PPU was at least 1 time in VBLANK
+
+  ldy #0            ; prepare zero page clear
+  ldx #$00          ; prepare zero page clear
+
+
+clear_zp:           ; clear the ZeroPage
+  sty $00,x         ; copy content of register x to register y
+  inx               ; increment register x
+  bne clear_zp      ; (B)ranch on (N)ot (E)quals -> register x is lower than $FF -> jump to clear_zp
   
-  sei             
-  cld           
-
-  ldx #0
-  stx PPUMASK   
-    
-  ldx #$FF       
-  txs     
-
-  bit PPUSTATUS    
-
-vwait1:
-
-  bit PPUSTATUS
-  bpl vwait1
-
-  ldy #0
-  ldx #$00 ;
-
-
-clear_zp:
-  sty $00,x
-  inx   
-  bne clear_zp
-  
-vwait2:
+vwait2:             ; wait for second VBLANK
   bit PPUSTATUS
   bpl vwait2
 
 
-; ----------------------------------------------------------
-;        PROGRAM START
-; ----------------------------------------------------------
+; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;                     PROGRAM START
+; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 start:
-  jsr draw_main_menue
+  jsr draw_main_menue   ; Draw the main menue
 
-  lda #VBLANK_NMI
-  sta PPUCTRL
+  lda #VBLANK_NMI       ; NMI was turned of for init, turn on again -> load command to register a
+  sta PPUCTRL           ; store content of register a to PPUCTRL
 
-  lda nmis
+  lda nmis              ; load nmis (will be incremented by each NMI)
 :
-  cmp nmis
-  beq :-
+  cmp nmis              ; (C)o(MP)are with accumulator (register A)
+  beq :-                ; jump to : when no VBLANK
 
-  lda #0 
-  sta PPUSCROLL
-  sta PPUSCROLL
+                        ; good, PPU is in VBLANK
 
-  lda #BG_1000|OBJ_1000
-  sta PPUCTRL
+  lda #0                ; disable scrolling
+  sta PPUSCROLL         ; disable vertical
+  sta PPUSCROLL         ; disable horizontal
 
-  lda #BG_ON|OBJ_ON
+  lda #BG_1000|OBJ_1000 ; set Pattern table and set address for sprites (OBJ_1000 is declared in nes.inc)
+  sta PPUCTRL           ; send to PPUCTRL
+
+  lda #BG_ON|OBJ_ON     ; turn on drawing for background and sprites (screen was turned of)
   sta PPUMASK
 
-loop:
-  jmp loop
+loop:                   ; main loop
+  jmp loop              ; nothing to do right now -> content of program will be placed here
 
 .ENDPROC 
 
