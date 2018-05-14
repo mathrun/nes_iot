@@ -5,7 +5,7 @@
 CLEANABLE_FOLDERS = ./bin ./obj ./dist
 ASSEMBLER = ca65
 LINKER = ld65
-EMU = fceux
+EMU = wine ../fceux-win/fceux.exe
 CC = gcc
 CFLAGS = -Wall -ansi -pedantic -g -O0
 ASSFLAGS =
