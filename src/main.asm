@@ -35,9 +35,6 @@ nmis: .RES 1        ; reserve 1 byte for nmis
 
 .PROC reset         ; Start or Reset of NES
 
-                    ;
-
-
   sei               ; ignore future interrupts by setting I-Flag in P-Register to 0
   cld               ; turn of BCD mode -> binary mode only
 
@@ -115,22 +112,23 @@ loop:                   ; main loop
   ldx #240
 
 :
-  sta PPUDATA 
+  lda #64
+  sta PPUDATA
   sta PPUDATA
   sta PPUDATA
   sta PPUDATA
 
-  dex 
-  bne :- 
-  ldx #64 
+  dex
+  bne :-
+  ldx #64
   lda #0
 
 :
-  sta PPUDATA 
+  sta PPUDATA
   dex
   bne :-
 
-  rts 
+  rts
 .ENDPROC
 
 .PROC draw_main_menue
@@ -146,14 +144,16 @@ loop:                   ; main loop
 
   ldx #8            ; init a loop of 8, palette has 32 colors, every 4th color will be white, the rest will be black (32/4 = 8)
 :
-  
+
   lda #$0F          ; load $0F (BLACK see color palette for NES)
   sta PPUDATA       ; set first color BLACK
+  lda #$03
   sta PPUDATA       ; set second color BLACK (not needed)
+  lda #$17
   sta PPUDATA       ; set thrid color BLACK (not needed)
   lda #$30          ; load color $30 (white)
   sta PPUDATA       ; set 4th color to WHITE
-  
+
   dex               ; decrement loop index (register x) by 1
   bne :-            ; if loop index  > 0, jump to :
 
@@ -167,13 +167,13 @@ loop:                   ; main loop
 
 
 
-  lda #$20                      ; prepare drawing position $2082
+  lda #$21                      ; prepare drawing position $2082
   sta $03                       ; store High-Byte to $03
-  lda #$82
+  lda #$68
   sta $02                       ; store Low-Byte to $02
 
   jsr print_menue               ; jump to print_menue
- 
+
   rts
 .ENDPROC
 
@@ -188,26 +188,32 @@ src = $00                       ; load Low-Byte of text source
   lda dstLo
   sta PPUADDR                   ; set Low-Byte to PPUADDR
 
+    lda #0
+    sta PPUDATA
+
   ldy #0
 
 loop:                           ; loop will draw tile for each character to PPUDATA
   lda (src),y                   ; load (character on position y
   beq done                      ; if no character, drawing is complete
-  
+
   iny                           ; increment register y
   bne :+                        ; jump to : when next inc y was not 0
 
   inc src+1                     ; increment source address by 1 (in case it's larger than 255) and store result in accumlator (register a)
 
-: 
-  cmp #10                       ; compare 10 with register a (accumulator) -> is it a new line charactor?
+:
+  cmp #50                      ; compare 10 with register a (accumulator) -> is it a new line charactor?
   beq newline                   ; new line -> jump to newline
-
+;  cmp #32                      ; compare 10 with register a (accumulator) -> is it a new line charactor?
+;  beq newline                   ; new line -> jump to newline
   sta PPUDATA                   ; store charactor -> tile address = character number
 
   bne loop                      ; and back again to loop:
 
-newline: 
+newline:
+
+
 
   lda #32                       ; load 32 to accumulator -> width of a screen row
 
@@ -223,7 +229,7 @@ newline:
   sta PPUADDR                   ; set HighByte of PPUADDR
   lda dstLo
   sta PPUADDR                   ; set Low-Byte of PPUADDR
-  
+
   jmp loop                      ; well done, new line inserted -> jump to loop:
 done:
   rts                           ; (R)e(T)urn from (S)ubroutine
@@ -232,4 +238,7 @@ done:
 .SEGMENT "DATA"
 
 firstLineText:
-  .BYT "first",$20,"line",0
+  .BYT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,50,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,50,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,0
+
+themap:
+  .INCBIN "test.map"

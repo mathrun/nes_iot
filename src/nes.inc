@@ -1,9 +1,9 @@
-; Die hier enthaltenen Kommentare sind sehr knapp gehalten. Für detaillierte 
+; Die hier enthaltenen Kommentare sind sehr knapp gehalten. Fï¿½r detaillierte 
 ; Informationen empfehle ich das Dokument "NES System Architecture v2.4" 
 ; (http://fms.komkon.org/EMUL8/NES.html) von Marat Fayzullin. 
 
 ; Allgemeine Einstellungen der PPU, bspw. ob ein NMI-Interrupt bei einem VBLANK
-; ausgelöst werden soll
+; ausgelï¿½st werden soll
 PPUCTRL = $2000
 
 ; Bitmaske, um die "Pattern Table" der Sprites auf Adresse $1000 zu setzen
@@ -11,7 +11,7 @@ OBJ_1000 = $08 ; $08 = %0000 1000
 
 ; Bitmaske, um die "Pattern Table" des Hintergrundbildschirms auf Adresse $1000 
 ; zu setzen
-BG_1000 = $10 ; $10 = %0001 0000
+BG_1000 = $00 ; $00 = %0000 0000
 
 ; Diese Bitmaske kann benutzt werden, um das VBLANK_NMI-Interrupt-Bit in PPUCTRL
 ; zu setzen
@@ -37,9 +37,9 @@ PPUSCROLL = $2005
 
 ; Mithilfe dieser Adresse kann eine Art Zeiger, der auf eine Speicherstelle im
 ; PPU-Speicher zeigt, positioniert werden.
-;	Nach jeder Schreiboperation wird dieser Zeiger dann automatisch hochgezählt.	
+;	Nach jeder Schreiboperation wird dieser Zeiger dann automatisch hochgezï¿½hlt.	
 ;
-; Hinweis: Da eine Speicheradresse gewöhnlich aus 16 Bit besteht, muss zuerst
+; Hinweis: Da eine Speicheradresse gewï¿½hnlich aus 16 Bit besteht, muss zuerst
 ; das High-Byte an diese Adresse geschrieben werden, danach das Low-Byte.
 ;
 ; BSP: Der folgende Code setzt den 'PPU-Speicherzeiger' auf Adresse $2000.
