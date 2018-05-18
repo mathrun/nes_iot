@@ -75,7 +75,10 @@ vwait2:             ; wait for second VBLANK
 ; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 start:
-  jsr draw_main_menue   ; Draw the main menue
+  jsr load_palettes
+  jsr clear_screen
+
+  jsr draw_splash       ; Draw the splash
 
   lda #VBLANK_NMI       ; NMI was turned of for init, turn on again -> load command to register a
   sta PPUCTRL           ; store content of register a to PPUCTRL
@@ -131,11 +134,7 @@ loop:                   ; main loop
   rts
 .ENDPROC
 
-.PROC draw_main_menue
-
-  jsr clear_screen    ; clear the screen
-
-; init color palette ($3F00-$3F1F) with colors
+.PROC load_palettes
 
   lda #$3F          ; set high-byte of PPUADDR to color palette
   sta PPUADDR
@@ -157,68 +156,53 @@ loop:                   ; main loop
   dex               ; decrement loop index (register x) by 1
   bne :-            ; if loop index  > 0, jump to :
 
-; all right, color palette is set
+  rts
+.ENDPROC
 
-  lda #>firstLineText           ; Load High-Byte of line and store to address $01
-  sta $01
-
-  lda #<firstLineText           ; Load Low-Byte of line and store to address $00
-  sta $00
-
-
-
-  lda #$21                      ; prepare drawing position $2082
+.PROC draw_splash
+  lda #$21                      ; prepare drawing connctd logo on position $2168
   sta $03                       ; store High-Byte to $03
   lda #$68
   sta $02                       ; store Low-Byte to $02
 
-  jsr print_menue               ; jump to print_menue
+  jsr print_connctd               ; jump to print_menue
 
   rts
 .ENDPROC
 
-.PROC print_menue
+.PROC print_connctd
 
-dstLo = $02                     ; load Low-Byte of drawing position
-dstHi = $03                     ; load High-Byte of drawing position
-src = $00                       ; load Low-Byte of text source
+  dstLo = $02                     ; load Low-Byte of drawing position
+  dstHi = $03                     ; load High-Byte of drawing position
 
   lda dstHi
   sta PPUADDR                   ; set High-Byte to PPUADDR
   lda dstLo
   sta PPUADDR                   ; set Low-Byte to PPUADDR
 
-    lda #0
-    sta PPUDATA
-
   ldy #0
-
+  ldx #0
 loop:                           ; loop will draw tile for each character to PPUDATA
-  lda (src),y                   ; load (character on position y
-  beq done                      ; if no character, drawing is complete
 
-  iny                           ; increment register y
-  bne :+                        ; jump to : when next inc y was not 0
+  lda connctd,y                   ; load (character on position y
 
-  inc src+1                     ; increment source address by 1 (in case it's larger than 255) and store result in accumlator (register a)
 
-:
-  cmp #50                      ; compare 10 with register a (accumulator) -> is it a new line charactor?
-  beq newline                   ; new line -> jump to newline
-;  cmp #32                      ; compare 10 with register a (accumulator) -> is it a new line charactor?
-;  beq newline                   ; new line -> jump to newline
-  sta PPUDATA                   ; store charactor -> tile address = character number
+  inx
+  cpx #17
+  beq newline
 
+  iny
+  cpy #49
+  beq done
+
+
+  sta PPUDATA                   ; store character -> tile address = character number
   bne loop                      ; and back again to loop:
 
 newline:
-
-
-
+  ldx #0
   lda #32                       ; load 32 to accumulator -> width of a screen row
-
   clc                           ; (CL)ear (C)arry bit
-
   adc dstLo                     ; add value of dstLo to current accumlator value (32)
   sta dstLo                     ; set new low-Byte value
 
@@ -235,10 +219,13 @@ done:
   rts                           ; (R)e(T)urn from (S)ubroutine
 .ENDPROC
 
+
+
+
+
 .SEGMENT "DATA"
 
-firstLineText:
-  .BYT 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,50,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,50,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,0
 
-themap:
-  .INCBIN "test.map"
+
+connctd:
+  .INCBIN "../res/connctd.nam"
